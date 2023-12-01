@@ -1,0 +1,37 @@
+---
+title: "House_Price_Predictions"
+output: html_document
+date: "2023-12-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Geographic Denisty of Homes
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(mapview)
+library(sf)
+
+house_df <- house_data
+subsample_df <- house_df[sample(nrow(house_df), 500), ]
+
+#mapview(subsample_df, xcol = "long", ycol = "lat", crs = 4269)
+```
+
+
+# Linear model's
+
+```{r pressure, echo=FALSE}
+lr_model_rooms <- lm(price ~ bedrooms + bathrooms, data = house_df)
+summary(lr_model_rooms)
+```
+
+```{r}
+lr_model_rooms <- lm(price ~ sqft_living + sqft_lot, data = house_df)
+summary(lr_model_rooms)
+```
