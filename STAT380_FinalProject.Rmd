@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "STAT 380 Fianl Project"
 output: html_notebook
 ---
 
@@ -65,6 +65,15 @@ max_adjr2 <- which.max(reg.summary$adjr2)
 points(max_adjr2,reg.summary$adjr2[max_adjr2], col="blue",cex=2,pch=20)
 ```
 
+```{r}
+avgPriceByYr <- ranData %>% select(price, yr_built, grade) %>%
+  group_by(yr_built) %>%
+  summarise(avgPrice = mean(price), avgGrade = mean(grade))
+
+avgPriceByYr
+
+
+```
 
 
 
