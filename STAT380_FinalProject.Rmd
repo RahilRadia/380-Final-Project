@@ -4,6 +4,18 @@ output: html_notebook
 author: Nicholas Anderson
 ---
 
+Processes needed:
+
+Linear Regression
+
+Cross-Validation
+
+Clustering
+
+Ridge/Lasso regression
+
+
+
 ```{r}
 library(tidyverse)
 library(sf)
