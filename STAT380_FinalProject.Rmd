@@ -1,6 +1,7 @@
 ---
 title: "STAT 380 Fianl Project"
 output: html_notebook
+author: Nicholas Anderson
 ---
 
 ```{r}
@@ -14,7 +15,7 @@ library(caret)
 
 set.seed(1)
 data <- read.csv("house_data.csv", header = TRUE, sep = ",")
-ranData <- sample_n(data, 500)
+ranData <- sample_n(data, 500) %>% select(-date)
 ranData
 ```
 
@@ -42,7 +43,7 @@ summary(lm_price_age)
 
 ```{r}
 regressionDf <- ranData %>%
-  select(-c(id, date))
+  select(-id)
 
 regfit.full = regsubsets(price ~ ., data = regressionDf,  nvmax = 18, method="forward")
 summary(regfit.full)
