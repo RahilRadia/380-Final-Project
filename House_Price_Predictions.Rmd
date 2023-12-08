@@ -14,24 +14,97 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(dplyr)
+library(ggplot2)
+library(ggiraphExtra)
+library(ggiraph)
 library(mapview)
+library(caret)
 library(sf)
+library(rpart)
+library(vip)
+library(rpart.plot)
+library(ipred)
+require(moonBook)
 
-house_df <- house_data
-subsample_df <- house_df[sample(nrow(house_df), 500), ]
+set.rseed(1)
 
-#mapview(subsample_df, xcol = "long", ycol = "lat", crs = 4269)
+data <- house_data
+subsample_df <- data[sample(nrow(house_df), 500), ]
+
+mapview(subsample_df, xcol = "long", ycol = "lat", crs = 4269)
 ```
 
-
-# Linear model's
-
-```{r pressure, echo=FALSE}
-lr_model_rooms <- lm(price ~ bedrooms + bathrooms, data = house_df)
-summary(lr_model_rooms)
-```
 
 ```{r}
-lr_model_rooms <- lm(price ~ sqft_living + sqft_lot, data = house_df)
-summary(lr_model_rooms)
+head(data)
 ```
+
+
+
+# Assess most important features via tree
+```{r}
+
+
+tree_model <- rpart(price ~ bedrooms + bathrooms + sqft_living + sqft_lot + floors + yr_built + zipcode + grade + condition + sqft_above + sqft_basement, data= data, control = list(cp = 0.001))
+
+tree_model$variable.importance
+
+```
+
+# Model 1: Prediction based on rooms
+
+```{r pressure, echo=FALSE}
+# linear model for predicting house prices based on number of bedrooms and bathrooms
+lr1 <- lm(price ~ bedrooms + bathrooms, data = data)
+summary(lr1)
+
+```
+y = 20138(x1) + 237781(x2) - 30643
+y: price
+x1:number of bedrooms
+x2:number of bathrooms
+
+
+## Predictions based on sq footage
+
+```{r}
+lr2 <- lm(price ~ sqft_living + sqft_lot, data = data)
+summary(lr2)
+```
+y = 282.29(x1) - 0.289(x2) - 43900
+
+y:price
+x1:sqft_above
+x2:sqft_below
+
+
+```{r}
+##Visualization model 1
+ggPredict(lr1, interactive = TRUE)
+```
+
+
+```{r}
+## visualization model 2
+ggPredict(lr2, interactive = TRUE)
+```
+
+
+Cross Validation linear model comparisons
+```{r}
+train_control <- trainControl(method = "cv",
+                              number = 50)
+
+model_1 <- train(price ~ bedrooms + bathrooms, data = data, method = "lm", trControl = train_control)
+model_2 <- train(price ~ sqft_living + sqft_lot, data = data, method = "lm", trControl = train_control)
+
+print("K-Fold CV RMSE for Model 1: ")
+model_1$results$RMSE
+print("K-Fold CV RMSE for Model 2: ")
+model_2$results$RMSE
+```
+```{r}
+model_3 <- train(price ~ grade + sqft_living + bathrooms + zipcode + yr_built, data = data, method = "lm", trControl = train_control)
+summary(model_3)
+```
+
