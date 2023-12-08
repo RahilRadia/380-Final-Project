@@ -6,16 +6,24 @@ author: Nicholas Anderson
 
 Processes needed:
 
-Linear Regression
+- Visualizations
 
-Cross-Validation
+- Linear Regression
 
-Clustering
+- Cross-Validation
 
-Ridge/Lasso regression
+- Clustering
+
+- Ridge/Lasso regression
+
+- Effects on price by rooms
+
+- Effects on price by renovation
+
+- Tree model
 
 
-
+### Loading and skim of the data
 ```{r}
 library(tidyverse)
 library(sf)
@@ -27,6 +35,8 @@ library(caret)
 library(mdsr)
 library(mvtnorm)
 library(factoextra)
+library(NbClust)
+library(cluster)
 
 set.seed(1)
 data <- read.csv("house_data.csv", header = TRUE, sep = ",")
@@ -35,28 +45,29 @@ ranData
 skim(ranData)
 ```
 
+### mapview of houses
 ```{r}
 
 #mapview(ranData, xcol = "long", ycol = "lat", crs = 4269, grid = FALSE)
 ```
 
-
+### linear regression price to rooms
 ```{r}
 lr_model_rooms <- lm(price ~ bedrooms + bathrooms, data = ranData)
 summary(lr_model_rooms)
 ```
 
-
+### linnear regression of price to size
 ```{r}
 lr_model_size <- lm(price ~ sqft_living + sqft_lot, data = ranData)
 summary(lr_model_size)
 ```
-
+### linnear regression of price to year built
 ```{r}
 lm_price_age <- lm(price ~ yr_built, data = ranData)
 summary(lm_price_age)
 ```
-
+### Cp, BIC, and Adjusted R^2
 ```{r}
 regressionDf <- ranData
 
@@ -81,6 +92,7 @@ max_adjr2 <- which.max(reg.summary$adjr2)
 points(max_adjr2,reg.summary$adjr2[max_adjr2], col="blue",cex=2,pch=20)
 ```
 
+### Average prices and grade by year
 ```{r}
 avgPriceByYr <- ranData %>% select(price, yr_built, grade) %>%
   group_by(yr_built) %>%
@@ -91,9 +103,41 @@ avgPriceByYr
 
 ```
 
+### Principal component analysis
 ```{r}
 
 ```
+
+### Hierarchical Clustering
+```{r}
+eu_dist <- get_dist(scale(ranData), method='euclidean')
+hc_single <- hclust(eu_dist, method='complete')
+plot(hc_single)
+
+func <- function(data, k) {
+  kmeans(data, k, nstart = 10)$tot.withinss
+}
+
+kVals <- 1:12
+
+funcVals <- map_dbl(kVals, func, data = scale(ranData))
+
+plot(kVals, funcVals, type = "b")
+
+fviz_nbclust(scale(ranData), kmeans, method = "silhouette")
+
+distance <- get_dist(eu_dist, method = "euclidean")
+
+kMean <- scale(ranData) %>% kmeans(2)
+cluster <- kMean$cluster
+sil <- silhouette(x = cluster, dist = distance)
+
+fviz_silhouette(sil)
+
+NbClust(scale(ranData),  distance = "euclidean", method = "kmeans", index = "hartigan")
+```
+
+Two clusters is the optimal number. 
 
 
 
